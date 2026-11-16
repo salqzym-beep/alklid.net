@@ -1,10 +1,9 @@
-import { put, list } from '@vercel/blob';
+import { put, list, get } from '@vercel/blob';
 
 const BLOB_FILENAME = 'alkhalid-store.json';
-const ADMIN_PASS = 'khalid123'; // يمكنك تغيير كلمة المرور من هنا
+const ADMIN_PASS = 'khalid123';
 
 export default async function handler(req, res) {
-  // السماح بالوصول
   res.setHeader('Cache-Control', 'no-store, max-age=0');
 
   if (req.method === 'GET') {
@@ -13,11 +12,12 @@ export default async function handler(req, res) {
       if (!blobs.length) {
         return res.status(200).json({ streams: [], ads: [] });
       }
-      // جلب أحدث نسخة من الملف
       const latest = blobs.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt))[0];
-      const response = await fetch(latest.url);
-      const data = await response.json();
-      return res.status(200).json(data);
+      
+      // قراءة الملف من المخزن الخاص باستخدام get
+      const result = await get(latest.pathname, { access: 'private' });
+      const text = await new Response(result.stream).text();
+      return res.status(200).json(JSON.parse(text));
     } catch (error) {
       return res.status(200).json({ streams: [], ads: [] });
     }
@@ -31,8 +31,9 @@ export default async function handler(req, res) {
 
     try {
       const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+      // الحفظ بوضع private ليطابق إعدادات المخزن لديك
       await put(BLOB_FILENAME, JSON.stringify(body), {
-        access: 'public',
+        access: 'private',
         addRandomSuffix: false,
         contentType: 'application/json'
       });
