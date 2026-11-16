@@ -1,130 +1,82 @@
 <!doctype html>
-<html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#008f80"><title>إدارة شبكة الخالد</title>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#008f80"><title>إدارة شبكة الخالد</title>
 <style>
-*{box-sizing:border-box}body{margin:0;font-family:Tahoma,Arial;background:linear-gradient(115deg,#00b9a7,#008c7b 42%,#003a35);color:#fff;min-height:100vh}.wrap{max-width:850px;margin:auto;padding:24px 16px}.head{text-align:center;padding:20px}.head h1{color:#f5df79;margin:0 0 8px}.card{background:#ffffff18;border:1px solid #ffffff35;border-radius:16px;padding:17px;margin:14px 0;backdrop-filter:blur(8px)}h2{font-size:20px;margin:0 0 14px}.field{width:100%;padding:13px;border:1px solid #b7e9df;border-radius:10px;background:#e1f7f2;color:#164b44;font:15px Tahoma;margin:6px 0}.btn{border:0;border-radius:10px;padding:11px 14px;font:bold 14px Tahoma;cursor:pointer;margin:4px}.primary{background:#052d2b;color:white}.danger{background:#ffd8d5;color:#82231c}.tabs{display:flex;gap:7px;flex-wrap:wrap}.tab{background:#d2f5ee;color:#064b43;border:0;padding:11px;border-radius:9px;font:bold 14px Tahoma;cursor:pointer}.tab.active{background:#f2d45b}.section{display:none}.section.active{display:block}.item{background:#e1f7f2;color:#164b44;border-radius:10px;padding:12px;margin:8px 0;overflow-wrap:anywhere}.item small{display:block;color:#55736d;margin:5px 0}.muted{font-size:13px;line-height:1.8;color:#d8f5ef}.loginbox{max-width:400px;margin:40px auto}.hidden{display:none!important}
-</style></head><body><main class="wrap">
+*{box-sizing:border-box}body{margin:0;font-family:Tahoma,Arial;background:linear-gradient(115deg,#00b9a7,#008c7b 42%,#003a35);color:#fff;min-height:100vh}
+.wrap{max-width:850px;margin:auto;padding:24px 16px}.head{text-align:center;padding:20px}.head h1{color:#f5df79;margin:0 0 8px}
+.card{background:#ffffff18;border:1px solid #ffffff35;border-radius:16px;padding:17px;margin:14px 0;backdrop-filter:blur(8px)}
+h2{font-size:20px;margin:0 0 14px}.field{width:100%;padding:13px;border:1px solid #b7e9df;border-radius:10px;background:#e1f7f2;color:#164b44;font:15px Tahoma;margin:6px 0}
+.btn{border:0;border-radius:10px;padding:11px 14px;font:bold 14px Tahoma;cursor:pointer;margin:4px}.primary{background:#052d2b;color:white}.light{background:#d2f5ee;color:#064b43}.danger{background:#ffd8d5;color:#82231c}.gold{background:#f2d45b;color:#173d36}
+.tabs{display:flex;gap:7px;flex-wrap:wrap}.tab{background:#d2f5ee;color:#064b43;border:0;padding:11px;border-radius:9px;font:bold 14px Tahoma;cursor:pointer}.tab.active{background:#f2d45b}
+.section{display:none}.section.active{display:block}.item{background:#e1f7f2;color:#164b44;border-radius:10px;padding:12px;margin:8px 0;overflow-wrap:anywhere}
+.item small{display:block;color:#55736d;margin:5px 0}.muted{font-size:13px;line-height:1.8;color:#d8f5ef}.loginbox{max-width:400px;margin:40px auto}.hidden{display:none!important}
+label{display:block;margin-top:8px}.hint{font-size:12px;color:#d8f5ef;line-height:1.7}.preview{max-width:150px;max-height:90px;border-radius:8px;display:block;margin:8px 0}.color-row{display:flex;align-items:center;gap:12px}.color-row input{width:58px;height:42px;border:0;background:transparent}
+</style></head>
+<body><main class="wrap">
 <header class="head"><h1>لوحة تحكم شبكة الخالد</h1><div>AL-KHALID NET</div></header>
-<div id="gate" class="card loginbox"><h2>دخول المدير</h2><input id="adminPass" class="field" type="password" placeholder="كلمة مرور لوحة التحكم"><button class="btn primary" onclick="unlock()">دخول</button></div>
+<div id="gate" class="card loginbox"><h2>دخول المدير</h2><input id="adminPass" class="field" type="password" placeholder="كلمة مرور لوحة التحكم"><button class="btn primary" onclick="unlock()">دخول</button><p class="muted">يتم حفظ التعديلات في Vercel Blob لتظهر لجميع الزوار.</p></div>
 <div id="dashboard" class="hidden">
-<nav class="tabs"><button class="tab active" onclick="tab('streams',this)">إدارة البث</button><button class="tab" onclick="tab('ads',this)">الإعلانات</button></nav>
-<section id="streams" class="section active card"><h2>إضافة رابط بث</h2><input id="sName" class="field" placeholder="اسم البث"><input id="sUrl" class="field" placeholder="رابط البث (يفضل M3U8)"><button id="btnAddStream" class="btn primary" onclick="addStream()">إضافة البث</button><div id="streamsList"></div></section>
-<section id="ads" class="section card"><h2>إدارة الإعلانات (حتى 3 صور)</h2><p class="muted">اختر صورة من جهازك (أقل من 1 ميجابايت). ستظهر بالتتابع في الصفحة الرئيسية.</p><input id="adName" class="field" placeholder="اسم الإعلان (اختياري)"><input id="adFile" class="field" type="file" accept="image/*"><button id="btnAddAd" class="btn primary" onclick="addAd()">إضافة صورة الإعلان</button><div id="adsList"></div></section>
-<p id="statusMsg" class="muted">متصل بقاعدة البيانات السحابية (Vercel Blob).</p>
+<nav class="tabs">
+<button class="tab active" onclick="tab('streams',this)">إدارة البث</button>
+<button class="tab" onclick="tab('links',this)">روابط الصفحة</button>
+<button class="tab" onclick="tab('ads',this)">الإعلانات</button>
+<button class="tab" onclick="tab('info',this)">معلومات الشبكة</button>
+<button class="tab" onclick="tab('design',this)">الألوان</button>
+</nav>
+<section id="streams" class="section active card"><h2>إضافة رابط بث</h2>
+<input id="sName" class="field" placeholder="اسم البث"><input id="sUrl" class="field" placeholder="رابط البث أو صفحة القناة">
+<button class="btn primary" onclick="addStream()">إضافة البث</button><div id="streamsList"></div></section>
+
+<section id="links" class="section card"><h2>إضافة رابط للصفحة الرئيسية</h2>
+<input id="linkName" class="field" placeholder="اسم الرابط"><input id="linkUrl" class="field" type="url" placeholder="الرابط الكامل https://...">
+<label>صورة الرابط (اختياري)</label><input id="linkFile" class="field" type="file" accept="image/*">
+<p class="hint">سيظهر الرابط في الصفحة الرئيسية، ويمكن للزائر الضغط عليه لفتحه.</p>
+<button class="btn primary" onclick="addLink()">إضافة الرابط</button><div id="linksList"></div></section>
+
+<section id="ads" class="section card"><h2>إدارة الإعلانات (حتى 3 صور)</h2><p class="muted">اختر صورة من جهازك. ستظهر بالتتابع في الصفحة الرئيسية.</p>
+<input id="adName" class="field" placeholder="اسم الإعلان (اختياري)"><input id="adFile" class="field" type="file" accept="image/*">
+<button class="btn primary" onclick="addAd()">إضافة صورة الإعلان</button><div id="adsList"></div></section>
+
+<section id="info" class="section card"><h2>معلومات حول الشبكة</h2>
+<input id="infoTitle" class="field" placeholder="العنوان أو اسم المعلومة (مثال: عنوان صفحة تسجيل الدخول)">
+<textarea id="infoText" class="field" rows="3" placeholder="اكتب التفاصيل أو الشرح هنا"></textarea>
+<input id="infoNumber" class="field" type="text" inputmode="decimal" placeholder="رقم (اختياري، مثال: 192.168.1.1 أو 730000000)">
+<button class="btn primary" onclick="addInfo()">إضافة المعلومة</button><div id="infoList"></div></section>
+
+<section id="design" class="section card"><h2>تغيير لون الموقع</h2><label>اللون الأساسي للخلفية</label>
+<div class="color-row"><input id="themeColor" type="color" value="#008f80"><span>اختر اللون الذي تريده</span></div>
+<button class="btn primary" onclick="saveTheme()">حفظ اللون</button><button class="btn light" onclick="resetTheme()">إعادة اللون الافتراضي</button>
+<p class="hint">يتم تطبيق اللون على الصفحة الرئيسية لجميع الزوار بعد الحفظ.</p></section>
+<p id="status" class="muted"></p>
 </div></main>
 <script>
-let currentPass = '';
-let state = { streams: [], ads: [] };
-
-async function fetchData() {
-  setStatus('جاري تحميل البيانات...');
-  try {
-    const res = await fetch('/api/data?t=' + Date.now());
-    state = await res.json();
-    if (!state.streams) state.streams = [];
-    if (!state.ads) state.ads = [];
-    renderAll();
-    setStatus('تم التحديث بنجاح.');
-  } catch (e) {
-    setStatus('خطأ في جلب البيانات.');
-  }
+const API='/api/data';
+let data={streams:[],ads:[],links:[],info:[],theme:{color:'#008f80'}},adminPassword='';
+const $=id=>document.getElementById(id);
+const val=id=>$(id).value.trim();
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function setStatus(t){$('status').textContent=t}
+async function loadData(){const r=await fetch(API,{cache:'no-store'});if(!r.ok)throw new Error('تعذر تحميل البيانات من الخادم');const d=await r.json();data={streams:[],ads:[],links:[],info:[],theme:{color:'#008f80'},...d};if(!Array.isArray(data.streams))data.streams=[];if(!Array.isArray(data.ads))data.ads=[];if(!Array.isArray(data.links))data.links=[];if(!Array.isArray(data.info))data.info=[];if(!data.theme||typeof data.theme!=='object')data.theme={color:'#008f80'};}
+async function saveData(){setStatus('جاري الحفظ في السحابة...');const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json','x-admin-pass':adminPassword},body:JSON.stringify(data)});const result=await r.json().catch(()=>({}));if(!r.ok)throw new Error(result.error||'فشل الحفظ');setStatus('تم الحفظ في السحابة بنجاح');renderAll()}
+async function unlock(){adminPassword=$('adminPass').value;if(!adminPassword)return alert('أدخل كلمة المرور');try{await loadData();$('gate').classList.add('hidden');$('dashboard').classList.remove('hidden');$('themeColor').value=data.theme.color||'#008f80';renderAll()}catch(e){alert(e.message)}}
+function tab(id,el){document.querySelectorAll('.section').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));$(id).classList.add('active');el.classList.add('active')}
+async function addStream(){const name=val('sName'),url=val('sUrl');if(!name||!url)return alert('أدخل الاسم والرابط');if(!/^https?:\/\//i.test(url))return alert('الرابط يجب أن يبدأ بـ https:// أو http://');data.streams.push({name,url});$('sName').value='';$('sUrl').value='';try{await saveData()}catch(e){alert(e.message)}}
+async function delStream(i){data.streams.splice(i,1);try{await saveData()}catch(e){alert(e.message)}}
+function readImage(file,max=1500000){return new Promise((resolve,reject)=>{if(!file)return resolve('');if(!file.type.startsWith('image/'))return reject(new Error('اختر ملف صورة'));if(file.size>max)return reject(new Error('حجم الصورة كبير؛ الحد 1.5 ميجابايت'));const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=()=>reject(new Error('تعذرت قراءة الصورة'));r.readAsDataURL(file)})}
+async function addLink(){const name=val('linkName'),url=val('linkUrl');if(!name||!url)return alert('أدخل اسم الرابط والرابط');if(!/^https?:\/\//i.test(url))return alert('الرابط يجب أن يبدأ بـ https:// أو http://');try{const image=await readImage($('linkFile').files[0]);data.links.push({name,url,image:image||''});$('linkName').value='';$('linkUrl').value='';$('linkFile').value='';await saveData()}catch(e){alert(e.message)}}
+async function delLink(i){data.links.splice(i,1);try{await saveData()}catch(e){alert(e.message)}}
+async function addAd(){const file=$('adFile').files[0];if(!file)return alert('اختر صورة أولاً');if(data.ads.length>=3)return alert('الحد الأقصى 3 صور');try{const image=await readImage(file);data.ads.push({name:val('adName')||'إعلان',data:image});$('adFile').value='';$('adName').value='';await saveData()}catch(e){alert(e.message)}}
+async function delAd(i){data.ads.splice(i,1);try{await saveData()}catch(e){alert(e.message)}}
+async function addInfo(){const title=val('infoTitle'),text=val('infoText'),number=val('infoNumber');if(!title&&!text&&!number)return alert('أدخل معلومة واحدة على الأقل');data.info.push({title,text,number});$('infoTitle').value='';$('infoText').value='';$('infoNumber').value='';try{await saveData()}catch(e){alert(e.message)}}
+async function delInfo(i){data.info.splice(i,1);try{await saveData()}catch(e){alert(e.message)}}
+async function saveTheme(){data.theme={...(data.theme||{}),color:$('themeColor').value};try{await saveData()}catch(e){alert(e.message)}}
+async function resetTheme(){$('themeColor').value='#008f80';await saveTheme()}
+function renderAll(){
+$('streamsList').innerHTML=data.streams.map((s,i)=>`<div class="item"><b>${esc(s.name)}</b><small>${esc(s.url)}</small><button class="btn danger" onclick="delStream(${i})">حذف</button></div>`).join('')||'<p class="muted">لا توجد روابط بث بعد.</p>';
+$('linksList').innerHTML=data.links.map((a,i)=>`<div class="item"><b>${esc(a.name)}</b><small>${esc(a.url)}</small>${a.image?`<img class="preview" src="${a.image}">`:''}<button class="btn danger" onclick="delLink(${i})">حذف الرابط</button></div>`).join('')||'<p class="muted">لا توجد روابط مضافة.</p>';
+$('adsList').innerHTML=data.ads.map((a,i)=>`<div class="item"><b>${esc(a.name)}</b><br><img class="preview" src="${a.data}"><button class="btn danger" onclick="delAd(${i})">حذف الإعلان</button></div>`).join('')||'<p class="muted">لا توجد إعلانات.</p>';
+$('infoList').innerHTML=data.info.map((m,i)=>`<div class="item"><b>${esc(m.title)}</b>${m.text?`<div>${esc(m.text)}</div>`:''}${m.number?`<div style="font-size:20px;font-weight:bold;margin-top:7px">${esc(m.number)}</div>`:''}<button class="btn danger" onclick="delInfo(${i})">حذف المعلومة</button></div>`).join('')||'<p class="muted">لم تتم إضافة معلومات بعد.</p>';
 }
-
-async function saveData() {
-  setStatus('جاري الحفظ في السحابة...');
-  try {
-    const res = await fetch('/api/data', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-admin-pass': currentPass
-      },
-      body: JSON.stringify(state)
-    });
-    if (!res.ok) {
-      const err = await res.json();
-      alert('فشل الحفظ: ' + (err.error || 'تأكد من ربط Blob في Vercel'));
-      setStatus('فشل الحفظ.');
-      return false;
-    }
-    setStatus('تم الحفظ ونشر التعديلات للجميع بنجاح!');
-    return true;
-  } catch (e) {
-    alert('تعذر الاتصال بالخادم.');
-    setStatus('تعذر الاتصال بالخادم.');
-    return false;
-  }
-}
-
-async function unlock() {
-  const pass = document.getElementById('adminPass').value;
-  if (!pass) return alert('أدخل كلمة المرور');
-  currentPass = pass;
-  // اختبار كلمة المرور عبر جلب البيانات ثم محاولة تحقق بسيطة أو التحقق عند الحفظ
-  if (pass !== 'khalid123') return alert('كلمة المرور غير صحيحة');
-  document.getElementById('gate').classList.add('hidden');
-  document.getElementById('dashboard').classList.remove('hidden');
-  await fetchData();
-}
-
-function tab(id, el) {
-  document.querySelectorAll('.section').forEach(x => x.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  el.classList.add('active');
-  renderAll();
-}
-
-async function addStream() {
-  const name = v('sName'), url = v('sUrl');
-  if (!name || !url) return alert('أدخل الاسم والرابط');
-  if (!/^https?:\/\//i.test(url)) return alert('الرابط يجب أن يبدأ بـ https:// أو http://');
-  const btn = document.getElementById('btnAddStream');
-  btn.disabled = true;
-  state.streams.push({ name, url });
-  if (await saveData()) {
-    document.getElementById('sName').value = '';
-    document.getElementById('sUrl').value = '';
-    renderAll();
-  }
-  btn.disabled = false;
-}
-
-async function delStream(i) {
-  state.streams.splice(i, 1);
-  if (await saveData()) renderAll();
-}
-
-function addAd() {
-  const file = document.getElementById('adFile').files[0];
-  if (!file) return alert('اختر صورة أولاً');
-  if (file.size > 1000000) return alert('حجم الصورة كبير؛ اختر صورة أقل من 1 ميجابايت');
-  if (state.ads.length >= 3) return alert('الحد الأقصى 3 صور');
-  const btn = document.getElementById('btnAddAd');
-  btn.disabled = true;
-  const r = new FileReader();
-  r.onload = async () => {
-    state.ads.push({ name: v('adName') || 'إعلان', data: r.result });
-    if (await saveData()) {
-      document.getElementById('adFile').value = '';
-      document.getElementById('adName').value = '';
-      renderAll();
-    }
-    btn.disabled = false;
-  };
-  r.readAsDataURL(file);
-}
-
-async function delAd(i) {
-  state.ads.splice(i, 1);
-  if (await saveData()) renderAll();
-}
-
-function renderAll() {
-  document.getElementById('streamsList').innerHTML = state.streams.map((s, i) => `<div class="item"><b>${esc(s.name)}</b><small>${esc(s.url)}</small><button class="btn danger" onclick="delStream(${i})">حذف</button></div>`).join('') || '<p class="muted">لا توجد روابط بعد.</p>';
-  document.getElementById('adsList').innerHTML = state.ads.map((a, i) => `<div class="item"><b>${esc(a.name)}</b><br><img src="${a.data}" style="max-width:150px;max-height:80px;margin:8px 0;border-radius:8px"><br><button class="btn danger" onclick="delAd(${i})">حذف الإعلان</button></div>`).join('') || '<p class="muted">لا توجد إعلانات.</p>';
-}
-
-function setStatus(t) { document.getElementById('statusMsg').textContent = t; }
-function v(id) { return document.getElementById(id).value.trim(); }
-function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 </script></body></html>
