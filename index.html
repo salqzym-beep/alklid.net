@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#008f80"><title>شبكة الخالد</title>
+<style>
+:root{--mint:#bdf1e8;--gold:#f2d45b;--ink:#073d38;--glass:rgba(255,255,255,.13)}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:Tahoma,Arial,sans-serif;color:#fff;background:linear-gradient(115deg,#00b9a7 0%,#008c7b 42%,#003a35 100%);background-attachment:fixed}
+.wrap{max-width:560px;margin:auto;padding:25px 18px 45px}.brand{text-align:center;padding:35px 10px 24px}.brand h1{font-size:34px;color:#f5df79;margin:0 0 8px;text-shadow:0 2px 8px #003c3666}.brand .latin{font-family:Georgia,serif;color:#f5df79;font-size:23px;letter-spacing:2px}.brand p{margin:14px 0 0;font-size:17px;color:#eafffb}
+.panel{background:var(--glass);border:1px solid #ffffff35;border-radius:18px;padding:18px;margin:14px 0;box-shadow:0 12px 28px #003a3525;backdrop-filter:blur(8px)}
+.section-title{font-size:21px;font-weight:bold;margin:0 0 14px;display:flex;align-items:center;gap:10px}.section-title .ico{width:38px;height:38px;border-radius:12px;background:#ffffff20;display:grid;place-items:center;font-size:21px}
+.btn{border:0;border-radius:12px;padding:14px 16px;font:bold 16px Tahoma;cursor:pointer;width:100%;background:#d2f5ee;color:#064b43;margin-top:9px;display:block;text-align:center;text-decoration:none}.btn.gold{background:#f2d45b;color:#173d36}.muted{color:#d8f5ef;font-size:13px;line-height:1.8}.stream-list{display:grid;gap:10px}.stream{display:flex;align-items:center;justify-content:space-between;background:#d1f4ed;color:#074c44;border-radius:12px;padding:14px;font-weight:bold;cursor:pointer}
+.ad-box{height:150px;position:relative;overflow:hidden;border-radius:14px;background:#ffffff1c;display:grid;place-items:center;text-align:center;border:1px solid #ffffff35}.ad-slide{display:none;width:100%;height:100%;padding:18px;align-items:center;justify-content:center;font-size:19px;font-weight:bold;color:#fff;background:linear-gradient(135deg,#00b5a2,#004b43)}.ad-slide.active{display:flex}.dots{display:flex;justify-content:center;gap:7px;margin-top:10px}.dot{width:7px;height:7px;border-radius:50%;background:#ffffff65}.dot.active{background:#f2d45b}
+.page{display:none}.page.active{display:block}.notice{padding:12px;border-radius:10px;background:#ffffff1c;line-height:1.8}.back{background:transparent;border:1px solid #ffffff70;color:#fff;border-radius:10px;padding:9px 13px;font:14px Tahoma;cursor:pointer;margin-bottom:12px}
+video{width:100%;background:#001d1b;border-radius:12px;max-height:55vh}.footer{text-align:center;color:#d2f5ee;font-size:12px;margin:28px 0 5px}
+</style></head>
+<body><main class="wrap">
+<header class="brand"><h1>شبكة الخالد</h1><div class="latin">AL-KHALID NET</div><p>أهلاً بكم في شبكة الخالد</p></header>
+
+<section id="home" class="page active">
+ <div class="panel">
+  <h2 class="section-title"><span class="ico">▶</span> البث المباشر</h2>
+  <p class="muted">اختر اسم البث لفتح المشاهدة.</p>
+  <div id="streamList" class="stream-list"><div class="notice">جاري تحميل روابط البث...</div></div>
+ </div>
+ <div class="panel">
+  <h2 class="section-title"><span class="ico">▧</span> الإعلانات</h2>
+  <div class="ad-box" id="adBox"><div class="ad-slide active">مرحباً بكم في شبكة الخالد</div></div>
+  <div class="dots" id="adDots"></div>
+ </div>
+</section>
+
+<section id="player" class="page">
+ <button class="back" onclick="showPage('home')">رجوع للرئيسية</button>
+ <div class="panel"><h2 id="playerTitle" class="section-title">البث المباشر</h2>
+ <video id="video" controls playsinline></video>
+ <p class="muted" id="playerHint">إذا كان الرابط يدعم HLS فستظهر الجودات المتاحة في المشغل المتوافق.</p>
+ <a id="externalLink" class="btn gold" target="_blank" rel="noopener">فتح رابط البث خارج التطبيق</a></div>
+</section>
+
+<div class="footer">شبكة الخالد AL-KHALID NET</div></main>
+<script>
+let adTimer = null;
+
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if (id === 'home') loadRemoteData();
+}
+
+async function loadRemoteData() {
+  const list = document.getElementById('streamList');
+  try {
+    const res = await fetch('/api/data?t=' + Date.now());
+    const d = await res.json();
+    const streams = d.streams || [];
+    const ads = d.ads || [];
+
+    list.innerHTML = '';
+    if (!streams.length) {
+      list.innerHTML = '<div class="notice">لا توجد روابط بث مضافة حالياً.</div>';
+    } else {
+      streams.forEach(s => {
+        const el = document.createElement('div');
+        el.className = 'stream';
+        el.innerHTML = '<span>' + escapeHtml(s.name) + '</span><span>مشاهدة ←</span>';
+        el.onclick = () => openStream(s);
+        list.appendChild(el);
+      });
+    }
+    renderAds(ads);
+  } catch (e) {
+    list.innerHTML = '<div class="notice">تعذر تحميل روابط البث حالياً.</div>';
+  }
+}
+
+function openStream(s) {
+  document.getElementById('playerTitle').textContent = s.name;
+  const v = document.getElementById('video');
+  v.pause();
+  v.removeAttribute('src');
+  v.load();
+  const link = document.getElementById('externalLink');
+  link.href = s.url;
+  link.textContent = 'فتح ' + s.name + ' خارج التطبيق';
+  if (/\.m3u8($|\?)/i.test(s.url)) {
+    document.getElementById('playerHint').textContent = 'قد تحتاج بعض أجهزة أندرويد إلى مشغل يدعم HLS لإظهار جميع الجودات.';
+    v.src = s.url;
+  } else {
+    document.getElementById('playerHint').textContent = 'إذا كان الرابط يفتح صفحة بث، استخدم زر فتح الرابط خارج التطبيق.';
+    v.src = s.url;
+  }
+  showPage('player');
+  v.play().catch(() => {});
+}
+
+function renderAds(ads) {
+  const box = document.getElementById('adBox'), dots = document.getElementById('adDots');
+  clearInterval(adTimer);
+  box.innerHTML = '';
+  dots.innerHTML = '';
+  if (!ads.length) {
+    box.innerHTML = '<div class="ad-slide active">إعلانات شبكة الخالد</div>';
+    return;
+  }
+  ads.slice(0, 3).forEach((a, i) => {
+    const s = document.createElement('div');
+    s.className = 'ad-slide' + (i === 0 ? ' active' : '');
+    if (a.data) {
+      s.style.backgroundImage = 'url(' + a.data + ')';
+      s.style.backgroundSize = 'cover';
+      s.style.backgroundPosition = 'center';
+      s.textContent = '';
+    } else s.textContent = a.name || 'إعلان';
+    box.appendChild(s);
+    const dot = document.createElement('span');
+    dot.className = 'dot' + (i === 0 ? ' active' : '');
+    dots.appendChild(dot);
+  });
+  let n = 0;
+  adTimer = setInterval(() => {
+    const slides = [...box.children], ds = [...dots.children];
+    slides[n].classList.remove('active');
+    ds[n].classList.remove('active');
+    n = (n + 1) % slides.length;
+    slides[n].classList.add('active');
+    ds[n].classList.add('active');
+  }, 3500);
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+loadRemoteData();
+</script></body></html>
