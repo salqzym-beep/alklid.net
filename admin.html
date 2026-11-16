@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#008f80"><title>إدارة شبكة الخالد</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Tahoma,Arial;background:linear-gradient(115deg,#00b9a7,#008c7b 42%,#003a35);color:#fff;min-height:100vh}.wrap{max-width:850px;margin:auto;padding:24px 16px}.head{text-align:center;padding:20px}.head h1{color:#f5df79;margin:0 0 8px}.card{background:#ffffff18;border:1px solid #ffffff35;border-radius:16px;padding:17px;margin:14px 0;backdrop-filter:blur(8px)}h2{font-size:20px;margin:0 0 14px}.field{width:100%;padding:13px;border:1px solid #b7e9df;border-radius:10px;background:#e1f7f2;color:#164b44;font:15px Tahoma;margin:6px 0}.btn{border:0;border-radius:10px;padding:11px 14px;font:bold 14px Tahoma;cursor:pointer;margin:4px}.primary{background:#052d2b;color:white}.danger{background:#ffd8d5;color:#82231c}.tabs{display:flex;gap:7px;flex-wrap:wrap}.tab{background:#d2f5ee;color:#064b43;border:0;padding:11px;border-radius:9px;font:bold 14px Tahoma;cursor:pointer}.tab.active{background:#f2d45b}.section{display:none}.section.active{display:block}.item{background:#e1f7f2;color:#164b44;border-radius:10px;padding:12px;margin:8px 0;overflow-wrap:anywhere}.item small{display:block;color:#55736d;margin:5px 0}.muted{font-size:13px;line-height:1.8;color:#d8f5ef}.loginbox{max-width:400px;margin:40px auto}.hidden{display:none!important}
+</style></head><body><main class="wrap">
+<header class="head"><h1>لوحة تحكم شبكة الخالد</h1><div>AL-KHALID NET</div></header>
+<div id="gate" class="card loginbox"><h2>دخول المدير</h2><input id="adminPass" class="field" type="password" placeholder="كلمة مرور لوحة التحكم"><button class="btn primary" onclick="unlock()">دخول</button></div>
+<div id="dashboard" class="hidden">
+<nav class="tabs"><button class="tab active" onclick="tab('streams',this)">إدارة البث</button><button class="tab" onclick="tab('ads',this)">الإعلانات</button></nav>
+<section id="streams" class="section active card"><h2>إضافة رابط بث</h2><input id="sName" class="field" placeholder="اسم البث"><input id="sUrl" class="field" placeholder="رابط البث (يفضل M3U8)"><button id="btnAddStream" class="btn primary" onclick="addStream()">إضافة البث</button><div id="streamsList"></div></section>
+<section id="ads" class="section card"><h2>إدارة الإعلانات (حتى 3 صور)</h2><p class="muted">اختر صورة من جهازك (أقل من 1 ميجابايت). ستظهر بالتتابع في الصفحة الرئيسية.</p><input id="adName" class="field" placeholder="اسم الإعلان (اختياري)"><input id="adFile" class="field" type="file" accept="image/*"><button id="btnAddAd" class="btn primary" onclick="addAd()">إضافة صورة الإعلان</button><div id="adsList"></div></section>
+<p id="statusMsg" class="muted">متصل بقاعدة البيانات السحابية (Vercel Blob).</p>
+</div></main>
+<script>
+let currentPass = '';
+let state = { streams: [], ads: [] };
+
+async function fetchData() {
+  setStatus('جاري تحميل البيانات...');
+  try {
+    const res = await fetch('/api/data?t=' + Date.now());
+    state = await res.json();
+    if (!state.streams) state.streams = [];
+    if (!state.ads) state.ads = [];
+    renderAll();
+    setStatus('تم التحديث بنجاح.');
+  } catch (e) {
+    setStatus('خطأ في جلب البيانات.');
+  }
+}
+
+async function saveData() {
+  setStatus('جاري الحفظ في السحابة...');
+  try {
+    const res = await fetch('/api/data', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-pass': currentPass
+      },
+      body: JSON.stringify(state)
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      alert('فشل الحفظ: ' + (err.error || 'تأكد من ربط Blob في Vercel'));
+      setStatus('فشل الحفظ.');
+      return false;
+    }
+    setStatus('تم الحفظ ونشر التعديلات للجميع بنجاح!');
+    return true;
+  } catch (e) {
+    alert('تعذر الاتصال بالخادم.');
+    setStatus('تعذر الاتصال بالخادم.');
+    return false;
+  }
+}
+
+async function unlock() {
+  const pass = document.getElementById('adminPass').value;
+  if (!pass) return alert('أدخل كلمة المرور');
+  currentPass = pass;
+  // اختبار كلمة المرور عبر جلب البيانات ثم محاولة تحقق بسيطة أو التحقق عند الحفظ
+  if (pass !== 'khalid123') return alert('كلمة المرور غير صحيحة');
+  document.getElementById('gate').classList.add('hidden');
+  document.getElementById('dashboard').classList.remove('hidden');
+  await fetchData();
+}
+
+function tab(id, el) {
+  document.querySelectorAll('.section').forEach(x => x.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  el.classList.add('active');
+  renderAll();
+}
+
+async function addStream() {
+  const name = v('sName'), url = v('sUrl');
+  if (!name || !url) return alert('أدخل الاسم والرابط');
+  if (!/^https?:\/\//i.test(url)) return alert('الرابط يجب أن يبدأ بـ https:// أو http://');
+  const btn = document.getElementById('btnAddStream');
+  btn.disabled = true;
+  state.streams.push({ name, url });
+  if (await saveData()) {
+    document.getElementById('sName').value = '';
+    document.getElementById('sUrl').value = '';
+    renderAll();
+  }
+  btn.disabled = false;
+}
+
+async function delStream(i) {
+  state.streams.splice(i, 1);
+  if (await saveData()) renderAll();
+}
+
+function addAd() {
+  const file = document.getElementById('adFile').files[0];
+  if (!file) return alert('اختر صورة أولاً');
+  if (file.size > 1000000) return alert('حجم الصورة كبير؛ اختر صورة أقل من 1 ميجابايت');
+  if (state.ads.length >= 3) return alert('الحد الأقصى 3 صور');
+  const btn = document.getElementById('btnAddAd');
+  btn.disabled = true;
+  const r = new FileReader();
+  r.onload = async () => {
+    state.ads.push({ name: v('adName') || 'إعلان', data: r.result });
+    if (await saveData()) {
+      document.getElementById('adFile').value = '';
+      document.getElementById('adName').value = '';
+      renderAll();
+    }
+    btn.disabled = false;
+  };
+  r.readAsDataURL(file);
+}
+
+async function delAd(i) {
+  state.ads.splice(i, 1);
+  if (await saveData()) renderAll();
+}
+
+function renderAll() {
+  document.getElementById('streamsList').innerHTML = state.streams.map((s, i) => `<div class="item"><b>${esc(s.name)}</b><small>${esc(s.url)}</small><button class="btn danger" onclick="delStream(${i})">حذف</button></div>`).join('') || '<p class="muted">لا توجد روابط بعد.</p>';
+  document.getElementById('adsList').innerHTML = state.ads.map((a, i) => `<div class="item"><b>${esc(a.name)}</b><br><img src="${a.data}" style="max-width:150px;max-height:80px;margin:8px 0;border-radius:8px"><br><button class="btn danger" onclick="delAd(${i})">حذف الإعلان</button></div>`).join('') || '<p class="muted">لا توجد إعلانات.</p>';
+}
+
+function setStatus(t) { document.getElementById('statusMsg').textContent = t; }
+function v(id) { return document.getElementById(id).value.trim(); }
+function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+</script></body></html>
